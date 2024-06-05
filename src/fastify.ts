@@ -104,7 +104,7 @@ export default async function fastifySetup(server: FastifyInstance): Promise<voi
 
     log.debug('Starting the server...');
     try {
-        await server.listen({ port });
+        await server.listen({ port, host: '0.0.0.0' });
         log.debug(`Server is up! Listening at http://localhost:${port}`);
 
         server.swagger({ yaml: true });
