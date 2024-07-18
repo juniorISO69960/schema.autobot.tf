@@ -374,7 +374,7 @@ type WebhookType = 'items' | 'effects' | 'paintkits' | 'skus';
 class WebhookQueue {
     private static webhooks: { url: string; type: WebhookType; webhook: Webhook }[] = [];
 
-    private static sleepTime = 1000;
+    private static sleepTime = 5000;
 
     private static isRateLimited = false;
 
@@ -408,11 +408,11 @@ class WebhookQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 5000;
             this.isRateLimited = false;
         }
 
-        void axios({
+        axios({
             method: 'POST',
             url: webhook.url,
             data: webhook.webhook
@@ -423,10 +423,10 @@ class WebhookQueue {
                 this.execute();
             })
             .catch(err => {
-                log.warn(`Error sending webhook on new ${webhook.type} update`, filterAxiosError(err));
+                log.warn(`Error sending webhook on new ${webhook.type} update: `, err.message);
 
-                if (typeof err.data !== 'string' && err.data?.message === 'The resource is being rate limited.') {
-                    this.sleepTime = err.data.retry_after;
+                if (err.status === 429) {
+                    this.sleepTime = 10000;
                     this.isRateLimited = true;
 
                     this.isProcessing = false;
